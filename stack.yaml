@@ -1,0 +1,56 @@
+services:
+  web:
+    image: localhost:6001/ionov-01/probe:${VERSION}
+    environment:
+      MARKER: sitelab
+      APP_PORT: "5001"
+      DATABASE_URL: postgresql://postgres:lab@db:5432/lab
+    ports:
+      - "8003:5001"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/notes', timeout=8)"]
+      interval: 3s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks: [net]
+    deploy:
+      labels:
+        devops.homework: "2"
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 5s
+        order: start-first
+        failure_action: rollback
+        monitor: 20s
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: lab
+      POSTGRES_DB: lab
+    volumes:
+      - data:/var/lib/postgresql/data
+    networks: [net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d lab"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+    deploy:
+      labels:
+        devops.homework: "2"
+
+networks:
+  net:
+    driver: overlay
+    ipam:
+      config:
+        - subnet: 10.21.0.0/24
+
+volumes:
+  data:
+    name: ionov-01_homework2_data
+    labels:
+      devops.homework: "2"

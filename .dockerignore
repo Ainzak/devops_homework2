@@ -1,0 +1,6 @@
+.git
+__pycache__
+README.md
+Dockerfile
+stack.yaml
+deploy.sh
